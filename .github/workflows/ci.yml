@@ -1,0 +1,53 @@
+name: Quantum CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: "3.10"
+  VENV_DIR: "./venv"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Create virtual environment
+        run: |
+          python -m venv ${{ env.VENV_DIR }}
+          source ${{ env.VENV_DIR }}/bin/activate
+          pip install --upgrade pip virtualenv invoke
+
+      - name: Install dependencies
+        run: |
+          source ${{ env.VENV_DIR }}/bin/activate
+          inv install
+
+      - name: Run tests
+        run: |
+          source ${{ env.VENV_DIR }}/bin/activate
+          inv test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            test-reports/junit.xml
+            test-reports/coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: test-reports/coverage.xml
