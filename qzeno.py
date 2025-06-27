@@ -13,6 +13,7 @@ Key parameters:
 - NUM_ATTEMPTS: Number of experimental runs for statistics
 """
 
+from .utils import validate_filename
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit.visualization import plot_histogram
@@ -22,19 +23,11 @@ from qiskit.visualization import array_to_latex
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import sys
 
 THETA_DEG = 2  # Basis rotation angle in degrees
 THETA_RAD = np.radians(THETA_DEG)  # Converted to radians
 NUM_ATTEMPTS = 1000  # Number of experimental runs
 NUM_MEASUREMENTS = int(np.radians(90) / THETA_RAD)  # Measurements needed for 90 degree rotation
-
-def validate_filename(filename):
-    """Check if output filename is valid and ensure .png extension"""
-    if not filename:
-        print("Error: Output filename cannot be empty", file=sys.stderr)
-        sys.exit(1)
-    return filename if filename.lower().endswith('.png') else f"{filename}.png"
 
 def measurement_projectors(theta):
     """Create projection operators for measurement in rotated basis

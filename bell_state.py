@@ -4,6 +4,7 @@
 # the creation of an entangled Bell state using Hadamard and CNOT gates.
 # The result of 1000 runs is measured and visualized as a histogram.
 
+from .utils import validate_filename
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qiskit.visualization import plot_histogram
@@ -13,14 +14,6 @@ from qiskit.visualization import array_to_latex
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import sys
-
-def validate_filename(filename):
-    """Validate the output filename and ensure it has .png extension"""
-    if not filename:
-        print("Error: Output filename cannot be empty", file=sys.stderr)
-        sys.exit(1)
-    return filename if filename.lower().endswith('.png') else f"{filename}.png"
 
 def print_statevector(qc, description):
     """Print current statevector with description"""
