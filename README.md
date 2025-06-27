@@ -14,5 +14,11 @@ source .venv/bin/activate  # Linux/Mac
 
 ### 2. Install dependencies
 ```bash
-pip install -r requirements.txt
+pip install invoke
+inv install
 ```
+
+### 3. Basic tasks
+- `inv test` — запуск тестов
+- `inv run-experiments` — выполнение экспериментов
+- `inv freeze` — обновление requirements.txt

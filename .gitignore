@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Results and outputs
+results/
+*.png
+*.csv
+*.log
+
+# Build artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+*.egg-info/
+dist/
+build/
+
+# IDE specific
+.vscode/
+.idea/

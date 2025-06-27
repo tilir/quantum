@@ -1,0 +1,38 @@
+stages:
+  - test
+
+variables:
+  PYTHON_VERSION: "3.10"
+  PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
+  VENV_DIR: "${CI_PROJECT_DIR}/venv"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip
+    - venv/
+
+test:
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  before_script:
+    - python --version
+    - pip install --upgrade pip virtualenv
+    - virtualenv ${VENV_DIR}
+    - source ${VENV_DIR}/bin/activate
+    - pip install invoke
+  script:
+    - inv install
+    - inv test
+  artifacts:
+    when: always
+    paths:
+      - test-reports/
+    reports:
+      junit: test-reports/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: test-reports/coverage.xml
+  rules:
+    - if: ${CI_PIPELINE_SOURCE} == "merge_request_event"
+    - if: ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH}

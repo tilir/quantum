@@ -69,7 +69,7 @@ def main(output_file):
 
         # Final measurement in standard basis
         prob_0 = np.abs(state.data[0])**2
-        results[np.random.random() >= prob_0] += 1
+        results[int(np.random.random() >= prob_0)] += 1
 
     print("Final measurement counts:", results)
 
