@@ -23,6 +23,7 @@ from qiskit.visualization import array_to_latex
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import random
 
 THETA_DEG = 2  # Basis rotation angle in degrees
 THETA_RAD = np.radians(THETA_DEG)  # Converted to radians
@@ -42,35 +43,64 @@ def measurement_projectors(theta):
     P_w = np.outer(w, w)  # ket(w) * bra(w)
     return P_v, P_w
 
-def main(output_file):
-    """Run quantum Zeno experiment and save results to file
+def measure_single_qzeno(state, theta_rad, num_measurements):
+    """Perform sequence of measurements in rotated basis
     
     Args:
-        output_file (str): Path to save output visualization
-    """
-    P_v, P_w = measurement_projectors(THETA_RAD)
-    results = [0, 0]  # [count_0, count_1]
-
-    for _ in range(NUM_ATTEMPTS):
-        # Initialize to ket(0)
-        state = Statevector([1, 0])
+        state (Statevector): Initial quantum state
+        theta_rad (float): Rotation angle per measurement in radians
+        num_measurements (int): Number of measurements to perform
         
-        # Perform sequence of measurements in rotated basis
-        for _ in range(NUM_MEASUREMENTS):
-            # Calculate measurement probabilities
-            prob_v = np.abs(state.data.conj() @ P_v @ state.data)
-            prob_w = 1 - prob_v  # Because P_v + P_w = identity
-            
-            # Collapse state based on measurement outcome
-            if np.random.random() < prob_v:
-                state = Statevector((P_v @ state.data)/np.sqrt(prob_v))
-            else:
-                state = Statevector((P_w @ state.data)/np.sqrt(prob_w))
+    Returns:
+        Statevector: Quantum state after measurements
+    """
+    P_v, P_w = measurement_projectors(theta_rad)
+    
+    for _ in range(num_measurements):
+        # Calculate probabilities
+        prob_v = np.abs(state.data.conj() @ P_v @ state.data)
+        prob_w = 1 - prob_v
+        
+        # Collapse state based on measurement
+        if np.random.random() < prob_v:
+            state = Statevector((P_v @ state.data)/np.sqrt(prob_v))
+        else:
+            state = Statevector((P_w @ state.data)/np.sqrt(prob_w))
 
-        # Final measurement in standard basis
+    return state
+
+def qzeno(theta_rad=THETA_RAD, num_measurements=None, 
+          num_attempts=NUM_ATTEMPTS, random_seed=None):
+    """Run quantum Zeno experiment"""
+    if random_seed is not None:
+        np.random.seed(random_seed)
+        random.seed(random_seed)
+
+    # Validate input parameters
+    if theta_rad <= 0:
+        raise ValueError("theta_rad must be positive")
+    if num_attempts <= 0:
+        raise ValueError("num_attempts must be positive")
+
+    # Calculate number of measurements if not specified
+    if num_measurements is None:
+        if theta_rad < 1e-5:  # Avoid division by zero for very small angles
+            raise ValueError("theta_rad must be >= 1e-5 to have reasonable number of measurements")
+        num_measurements = int(np.radians(90) / theta_rad)
+    
+    results = [0, 0]
+    
+    for _ in range(num_attempts):
+        state = Statevector([1, 0])
+        state = measure_single_qzeno(state, theta_rad, num_measurements)
+
         prob_0 = np.abs(state.data[0])**2
         results[int(np.random.random() >= prob_0)] += 1
+    
+    return results
 
+def main(output_file):
+    results = qzeno()
     print("Final measurement counts:", results)
 
     # Create and save visualization
