@@ -110,7 +110,7 @@ def qzeno(
 
 def main(output_file):
     results = qzeno()
-    print("Final measurement counts:", results)
+    print("Qzeno measurement counts:", results)
 
     # Create and save visualization
     plt.figure(figsize=(8, 5))
@@ -121,6 +121,7 @@ def main(output_file):
     plt.ylabel("Measurement counts")
     plt.savefig(output_file)
     plt.close()
+    print(f"Histogram saved to {output_file}")
 
 
 if __name__ == "__main__":

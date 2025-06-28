@@ -14,6 +14,8 @@ from qiskit_aer import AerSimulator
 
 from .utils import validate_filename
 
+VERBOSE = 0  # Verbose output
+
 
 def print_statevector(qc, description):
     """Print current statevector with description"""
@@ -29,20 +31,22 @@ def print_opmatrix(qc, description):
     print("Opmatrix:\n", np.round(m, 4))
 
 
-def main(output_file):
+def bell_state():
     # Create a circuit with 2 qubits and 2 classical bits
     qc = QuantumCircuit(2, 2)
     print_statevector(qc, "Initial state")
 
     # Step 1: Apply the Hadamard gate (H) to the first qubit to create superposition
     qc.h(0)  # H gate on qubit q0: ket(0) -> (ket(0) + ket(1)) / sqrt(2)
-    print_opmatrix(qc, "Matrix after H on q0")
-    print_statevector(qc, "After H on q0")
+    if VERBOSE:
+        print_opmatrix(qc, "Matrix after H on q0")
+        print_statevector(qc, "After H on q0")
 
     # Step 2: Apply a CNOT gate with q0 as control and q1 as target
     qc.cx(0, 1)  # CNOT flips q1 if q0 is ket(1), creating an entangled state
-    print_opmatrix(qc, "Matrix after CNOT")
-    print_statevector(qc, "After CNOT")
+    if VERBOSE:
+        print_opmatrix(qc, "Matrix after CNOT")
+        print_statevector(qc, "After CNOT")
 
     # Step 3: Measure both qubits and store the results in classical bits
     qc.measure([0, 1], [0, 1])  # Measure q0 -> c0, q1 -> c1
@@ -52,11 +56,14 @@ def main(output_file):
     job = simulator.run(qc, shots=1000)  # Perform 1000 runs
     result = job.result()
 
-    # Step 5: Retrieve measurement results
     counts = result.get_counts(qc)
-    print("Measurement results:", counts)
+    return counts
 
-    # Step 6: Visualize and save the results
+
+def main(output_file):
+    counts = bell_state()
+    print("Bell state measurement results:", counts)
+
     fig = plot_histogram(counts)
     fig.savefig(output_file)
     print(f"Histogram saved to {output_file}")
