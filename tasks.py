@@ -16,6 +16,14 @@ def format(c, check=False):
 
 
 @task
+def docs(c):
+    """Build and open documentation"""
+    with c.cd("docs"):
+        c.run("make clean")
+        c.run("make html")
+
+
+@task
 def fix(c):
     """Automatically fix linting and formatting issues"""
     c.run("black experiments/ tests/ tasks.py")
