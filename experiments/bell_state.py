@@ -1,31 +1,34 @@
 #!/usr/bin/env python3
 
-# This script creates and simulates a quantum circuit that demonstrates 
+# This script creates and simulates a quantum circuit that demonstrates
 # the creation of an entangled Bell state using Hadamard and CNOT gates.
 # The result of 1000 runs is measured and visualized as a histogram.
 
-from .utils import validate_filename
-from qiskit import QuantumCircuit
-from qiskit_aer import AerSimulator
-from qiskit.visualization import plot_histogram
-from qiskit.quantum_info import Statevector
-from qiskit.quantum_info import Operator
-from qiskit.visualization import array_to_latex
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Operator, Statevector
+from qiskit.visualization import array_to_latex, plot_histogram
+from qiskit_aer import AerSimulator
+
+from .utils import validate_filename
+
 
 def print_statevector(qc, description):
     """Print current statevector with description"""
     state = Statevector(qc)
     print(f"\n{description}:")
-    print("Statevector:", state.draw(output='text'))
+    print("Statevector:", state.draw(output="text"))
+
 
 def print_opmatrix(qc, description):
     op = Operator(qc)
     m = op.data
     print(f"\n{description}:")
     print("Opmatrix:\n", np.round(m, 4))
+
 
 def main(output_file):
     # Create a circuit with 2 qubits and 2 classical bits
@@ -59,12 +62,20 @@ def main(output_file):
     fig.savefig(output_file)
     print(f"Histogram saved to {output_file}")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Generate and visualize Bell state measurements.')
-    parser.add_argument('--output', '-o', type=str, default='bell_state.png',
-                       help='Output PNG file path (default: bell_state.png)')
+    parser = argparse.ArgumentParser(
+        description="Generate and visualize Bell state measurements."
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="bell_state.png",
+        help="Output PNG file path (default: bell_state.png)",
+    )
     args = parser.parse_args()
-    
+
     # Validate and normalize the filename
     output_file = validate_filename(args.output)
     main(output_file)

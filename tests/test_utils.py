@@ -1,7 +1,10 @@
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
+
 from experiments.utils import validate_filename
+
 
 def test_validate_filename():
     assert validate_filename("test") == "test.png"

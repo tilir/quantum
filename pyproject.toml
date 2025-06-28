@@ -15,7 +15,12 @@ dependencies = [
 dev = [
     "pytest>=8.4",
     "invoke>=2.2",
-    "pytest-cov>=4.2.0"
+    "pytest-cov>=4.2.0",
+    "black>=23.0",
+    "isort>=5.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+    "autoflake>=2.0"
 ]
 
 [build-system]
@@ -24,3 +29,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["experiments"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 88

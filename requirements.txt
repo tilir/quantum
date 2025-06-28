@@ -1,20 +1,32 @@
+autoflake==2.3.1
+black==25.1.0
+click==8.2.1
 contourpy==1.3.2
 coverage==7.9.1
 cycler==0.12.1
 dill==0.4.0
 exceptiongroup==1.3.0
+flake8==7.3.0
 fonttools==4.58.4
 iniconfig==2.1.0
 invoke==2.2.0
+isort==6.0.1
 kiwisolver==1.4.8
 matplotlib==3.10.3
+mccabe==0.7.0
 mpmath==1.3.0
+mypy==1.16.1
+mypy_extensions==1.1.0
 numpy==2.2.6
 packaging==25.0
+pathspec==0.12.1
 pbr==6.1.1
 pillow==11.2.1
+platformdirs==4.3.8
 pluggy==1.6.0
 psutil==7.0.0
+pycodestyle==2.14.0
+pyflakes==3.4.0
 Pygments==2.19.2
 pyparsing==3.2.3
 pytest==8.4.1
@@ -22,7 +34,7 @@ pytest-cov==6.2.1
 python-dateutil==2.9.0.post0
 qiskit==2.1.0
 qiskit-aer==0.17.1
--e git+https://github.com/tilir/quantum.git@7a63eb716b686c3b81e182d7f4dd1d2f5e38937a#egg=quantum_experiments
+-e git+https://github.com/tilir/quantum.git@ae53b2afba2aff678b33a5d7b609da8dc12b1599#egg=quantum_experiments
 rustworkx==0.16.0
 scipy==1.15.3
 six==1.17.0
