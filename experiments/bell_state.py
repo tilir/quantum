@@ -6,11 +6,10 @@
 
 import argparse
 
-import matplotlib.pyplot as plt
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator, Statevector
-from qiskit.visualization import array_to_latex, plot_histogram
+from qiskit.visualization import plot_histogram
 from qiskit_aer import AerSimulator
 
 from .utils import validate_filename

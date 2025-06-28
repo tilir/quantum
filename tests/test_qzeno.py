@@ -12,8 +12,6 @@ import pytest
 from qiskit.quantum_info import Statevector
 
 from experiments.qzeno import (
-    NUM_ATTEMPTS,
-    NUM_MEASUREMENTS,
     THETA_RAD,
     measure_single_qzeno,
     measurement_projectors,

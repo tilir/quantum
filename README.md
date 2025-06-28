@@ -1,6 +1,6 @@
 # Quantum demos and experiments
 
-Just different demos
+A collection of quantum computing demos and experiments.
 
 ## Installation
 
@@ -19,6 +19,7 @@ inv install
 ```
 
 ### 3. Basic tasks
-- `inv test` — запуск тестов
-- `inv run-experiments` — выполнение экспериментов
-- `inv freeze` — обновление requirements.txt
+- `inv test` —  run tests
+- `inv run-experiments` — run experiments
+- `inv freeze` —  update `requirements.txt`
+- `inv fix` — automatically format and lint the code

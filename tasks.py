@@ -16,6 +16,17 @@ def format(c, check=False):
 
 
 @task
+def fix(c):
+    """Automatically fix linting and formatting issues"""
+    c.run("black experiments/ tests/ tasks.py")
+    c.run("isort experiments/ tests/ tasks.py")
+    c.run(
+        "autoflake --in-place --remove-all-unused-imports --recursive experiments/ tests/"
+    )
+    print("Formatting and basic linting issues fixed")
+
+
+@task
 def test(c):
     """Run all tests with coverage"""
     c.run("mkdir -p test-reports")
