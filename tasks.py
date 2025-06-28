@@ -78,4 +78,4 @@ def run_qzeno(c, output_dir="results"):
 @task
 def freeze(c):
     """Generate requirements.txt from current dependencies"""
-    c.run("pip freeze > requirements.txt")
+    c.run("pip freeze --exclude-editable > requirements.txt")

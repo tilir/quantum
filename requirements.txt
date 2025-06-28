@@ -34,7 +34,6 @@ pytest-cov==6.2.1
 python-dateutil==2.9.0.post0
 qiskit==2.1.0
 qiskit-aer==0.17.1
--e git+https://github.com/tilir/quantum.git@ae53b2afba2aff678b33a5d7b609da8dc12b1599#egg=quantum_experiments
 rustworkx==0.16.0
 scipy==1.15.3
 six==1.17.0
