@@ -13,7 +13,7 @@ from qiskit.quantum_info import Statevector
 
 from experiments.qzeno import (
     THETA_RAD,
-    measure_single_qzeno,
+    qzeno_measurements,
     measurement_projectors,
     qzeno,
 )
@@ -34,7 +34,10 @@ def fixed_seed():
 def test_measurement_projectors_basic_properties():
     """Test that measurement projectors satisfy required mathematical properties"""
     theta = np.radians(30)
-    P_v, P_w = measurement_projectors(theta)
+    v = np.array([np.cos(theta), np.sin(theta)])
+    w = np.array([-np.sin(theta), np.cos(theta)])
+
+    P_v, P_w = measurement_projectors(v, w)
 
     # 1. Test projectors are Hermitian
     assert np.allclose(P_v, P_v.conj().T), "P_v should be Hermitian"
@@ -52,47 +55,26 @@ def test_measure_single_qzeno_deterministic():
     theta = THETA_RAD  # ~2 degrees
 
     # Test case 1: All measurements result in P_v
-    with patch("random.random", return_value=0.1):
-        state = Statevector([1, 0])
-        final_state = measure_single_qzeno(state, theta, 3)
-
-        # Correct calculation of the expected state
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-        norm = np.sqrt(cos_theta**6 + (cos_theta**2 * sin_theta) ** 2)
-        expected_0 = cos_theta**3 / norm
-        expected_1 = cos_theta**2 * sin_theta / norm
+    with patch("numpy.random.random", return_value=0.0):  # 20 zeroes in a row
+        state = np.array([1, 0])
+        final_state = qzeno_measurements(state, theta, 20)
+        expected_state = [np.cos(20*theta), np.sin(20*theta)] 
 
         # Check for equivalence up to global phase
         assert np.allclose(
-            np.abs(final_state.data), np.abs([expected_0, expected_1]), atol=1e-7
-        ), f"State magnitudes don't match. Expected {[expected_0, expected_1]}, got {final_state.data}"
+            np.abs(final_state), np.abs(expected_state), atol=1e-7
+        ), f"State magnitudes don't match. Expected {expected_state}, got {final_state}"
 
-    # Test case 2: Alternating P_v and P_w measurements
-    with patch("random.random", side_effect=[0.1, 0.9, 0.1]):
-        state = Statevector([1, 0])
-        final_state = measure_single_qzeno(state, theta, 3)
-
-        # Step-by-step practical calculation
-        state = Statevector([1, 0])
-        P_v, P_w = measurement_projectors(theta)
-
-        # First P_v
-        prob_v = np.abs(state.data.conj() @ P_v @ state.data)
-        state = Statevector((P_v @ state.data) / np.sqrt(prob_v))
-
-        # Then P_w
-        prob_w = np.abs(state.data.conj() @ P_w @ state.data)
-        state = Statevector((P_w @ state.data) / np.sqrt(prob_w))
-
-        # Then P_v again
-        prob_v = np.abs(state.data.conj() @ P_v @ state.data)
-        expected_state = Statevector((P_v @ state.data) / np.sqrt(prob_v))
+    # Test case 2: All measurements result in P_w
+    with patch("numpy.random.random", return_value=1.0):  # 20 ones in a row
+        state = np.array([1, 0])
+        final_state = qzeno_measurements(state, theta, 20)
+        expected_state = [np.sin(20*theta), -np.cos(20*theta)] 
 
         # Check for equivalence up to global phase
         assert np.allclose(
-            np.abs(final_state.data), np.abs(expected_state.data), atol=1e-7
-        ), f"State magnitudes don't match. Expected {expected_state.data}, got {final_state.data}"
+            np.abs(final_state), np.abs(expected_state), atol=1e-2
+        ), f"State magnitudes don't match. Expected {expected_state}, got {final_state}"
 
 
 def test_qzeno_basic_properties(fixed_seed):
@@ -100,7 +82,7 @@ def test_qzeno_basic_properties(fixed_seed):
     results = qzeno(num_attempts=100)
 
     # Should return exactly two counts
-    assert len(results) == 2, "Results should contain counts for |0⟩ and |1⟩"
+    assert len(results) == 2, "Results should contain counts for ket(0) and ket(1)"
 
     # Total counts should equal num_attempts
     assert sum(results) == 100, "Total counts should match number of attempts"
@@ -113,22 +95,22 @@ def test_qzeno_zeno_effect_strong(fixed_seed):
     """Test strong Zeno effect with small rotation angles"""
     # Small angle (1 degree) - strong Zeno effect
     results = qzeno(theta_rad=np.radians(1), num_attempts=100)
-    prob_0 = results[0] / 100
-    assert prob_0 > 0.95, "With small angles, |0⟩ probability should be >95%"
+    prob_1 = results[1] / 100
+    assert prob_1 > 0.95, "With small angles, ket(0) probability should be >95%"
 
 
 def test_qzeno_no_zeno_effect(fixed_seed):
     """Test case without Zeno effect (single large rotation)"""
     # Single 45 degree measurement - no Zeno effect
     results = qzeno(theta_rad=np.radians(45), num_measurements=1, num_attempts=100)
-    prob_0 = results[0] / 100
+    prob_1 = results[1] / 100
     assert (
-        0.4 < prob_0 < 0.6
+        0.4 < prob_1 < 0.6
     ), "With single 45° measurement, ket(0) probability should be ~50%"
 
 
 @pytest.mark.parametrize(
-    "theta_deg, min_prob_0",
+    "theta_deg, min_prob_1",
     [
         (0.5, 0.98),  # Very small angle - strong Zeno
         (2, 0.9),  # Default case
@@ -136,16 +118,16 @@ def test_qzeno_no_zeno_effect(fixed_seed):
         (30, 0.4),  # Larger angle - weaker Zeno
     ],
 )
-def test_qzeno_angle_dependence(theta_deg, min_prob_0, fixed_seed):
+def test_qzeno_angle_dependence(theta_deg, min_prob_1, fixed_seed):
     """Test Zeno effect dependence on measurement angle"""
     results = qzeno(
         theta_rad=np.radians(theta_deg),
         num_attempts=1000,  # More attempts for better statistics
     )
-    prob_0 = results[0] / sum(results)
+    prob_1 = results[1] / sum(results)
     assert (
-        prob_0 > min_prob_0
-    ), f"With {theta_deg}° rotations, |0⟩ probability should be >{min_prob_0}"
+        prob_1 > min_prob_1
+    ), f"With {theta_deg}° rotations, ket(0) probability should be >{min_prob_1}"
 
 
 def test_qzeno_reproducibility():

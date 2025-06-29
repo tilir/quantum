@@ -30,46 +30,67 @@ NUM_MEASUREMENTS = int(
 )  # Measurements needed for 90 degree rotation
 
 
-def measurement_projectors(theta):
-    """Create projection operators for measurement in rotated basis
+def measurement_projectors(v, w):
+    """Create projection operators for given vectors (1-qubit case)
 
     Returns:
         tuple: (P_v, P_w) where P_v = ket(v) * bra(v) and P_w = ket(w) * bra(w)
                for the rotated basis states v and w
     """
-    v = np.array([np.cos(theta), np.sin(theta)])
-    w = np.array([-np.sin(theta), np.cos(theta)])
-    P_v = np.outer(v, v)  # ket(v) * bra(v)
-    P_w = np.outer(w, w)  # ket(w) * bra(w)
+    P_v = np.outer(v, v.conj())  # ket(v) * bra(v)
+    P_w = np.outer(w, w.conj())  # ket(w) * bra(w)
     return P_v, P_w
 
 
-def measure_single_qzeno(state, theta_rad, num_measurements):
+def probs_normalized(state, projectors):
+    # Calculate probabilities
+    probs = [np.abs(state.conj() @ P @ state) for P in projectors]
+    
+    # Normalize probabilities (might not sum to 1 due to precision)
+    total_prob = sum(probs)
+    probs = [p / total_prob for p in probs]
+    return probs
+
+
+def measure_in_basis(state, v, w):
+    """Measures 1-qubit state in <v, w> basis
+
+    Returns:
+        collapsed state
+    """
+    P_v, P_w = measurement_projectors(v, w)
+    prob_v, prob_w = probs_normalized(state, [P_v, P_w])
+
+    rand_val = np.random.random()
+    if rand_val < prob_v:
+        state = (P_v @ state) / np.sqrt(prob_v)
+        print(f"P_v: rand={rand_val:.2f}, prob_v={prob_v:.2f}")
+    else:
+        state = (P_w @ state) / np.sqrt(prob_w)
+        print(f"P_w: rand={rand_val:.2f}, prob_w={prob_w:.2f}")
+    return state
+
+
+def qzeno_measurements(state, dtheta, num_measurements):
     """Perform sequence of measurements in rotated basis
 
     Args:
         state (Statevector): Initial quantum state
-        theta_rad (float): Rotation angle per measurement in radians
+        dtheta (float): Rotation angle per measurement in radians
         num_measurements (int): Number of measurements to perform
 
     Returns:
         Statevector: Quantum state after measurements
     """
-    P_v, P_w = measurement_projectors(theta_rad)
+    theta = dtheta
 
     for _ in range(num_measurements):
-        # Calculate probabilities
-        prob_v = np.abs(state.data.conj() @ P_v @ state.data)
-        prob_w = 1 - prob_v
-
-        # Collapse state based on measurement
-        if np.random.random() < prob_v:
-            state = Statevector((P_v @ state.data) / np.sqrt(prob_v))
-        else:
-            state = Statevector((P_w @ state.data) / np.sqrt(prob_w))
+      v = np.array([np.cos(theta), np.sin(theta)])
+      w = np.array([-np.sin(theta), np.cos(theta)])
+      state = measure_in_basis(state, v, w)
+      theta += dtheta
 
     return state
-
 
 def qzeno(
     theta_rad=THETA_RAD,
@@ -97,12 +118,18 @@ def qzeno(
         num_measurements = int(np.radians(90) / theta_rad)
 
     results = [0, 0]
+    z = np.array([1, 0])
+    o = np.array([0, 1])
+    P_0, P_1 = measurement_projectors(z, o)
 
     for _ in range(num_attempts):
-        state = Statevector([1, 0])
-        state = measure_single_qzeno(state, theta_rad, num_measurements)
+        state = np.array([1, 0])
+        state = qzeno_measurements(state, theta_rad, num_measurements)
+        probs = probs_normalized(state, [P_0, P_1])
+        prob_0 = probs[0]
 
-        prob_0 = np.abs(state.data[0]) ** 2
+        #print("state: ", state)
+        #print("p0: ", prob_0)
         results[int(np.random.random() >= prob_0)] += 1
 
     return results
