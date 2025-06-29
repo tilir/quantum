@@ -32,16 +32,16 @@ def test_validate_filename():
 
     # Test default extension addition behavior
     assert (
-        validate_filename("test") == "test.png"
+        validate_filename("test", "png") == "test.png"
     ), "Default case: Should append .png when extension is missing"
 
     # Test preservation of properly formatted filenames
     assert (
-        validate_filename("image.png") == "image.png"
+        validate_filename("image.png", "png") == "image.png"
     ), "Already valid: Should preserve correct .png filenames unchanged"
 
     # Test empty filename rejection
     with pytest.raises(SystemExit):
         validate_filename(
-            ""
+            "", "png"
         ), "Error case: Should system exit on empty filenames to prevent data loss"

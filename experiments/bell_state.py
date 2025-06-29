@@ -8,78 +8,22 @@ The output shows the characteristic 50/50 distribution between ket(00) and ket(1
 
 import argparse
 
-import numpy as np
-from qiskit import QuantumCircuit
-from qiskit.quantum_info import Operator, Statevector
-from qiskit.visualization import plot_histogram
+from qiskit.visualization import circuit_drawer, plot_histogram
 from qiskit_aer import AerSimulator
 
+from .qstates import bell_state
 from .utils import validate_filename
 
-VERBOSE = 0  # Controls debug output verbosity (0/1)
 
-
-def print_statevector(qc, description):
-    """Prints the current quantum statevector with contextual description.
-
-    Args:
-        qc (QuantumCircuit): Quantum circuit to analyze.
-        description (str): Contextual information about the state being printed.
-
-    Returns:
-        None: Outputs directly to stdout.
-
-    Example:
-        >>> circuit = QuantumCircuit(2)
-        >>> print_statevector(circuit, "Initial state")
-        Initial state:
-        Statevector: [1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-    """
-    state = Statevector(qc)
-    print(f"\n{description}:")
-    print("Statevector:", state.draw(output="text"))
-
-
-def print_opmatrix(qc, description):
-    """Prints the unitary operator matrix for the current circuit state.
-
-    Args:
-        qc (QuantumCircuit): Quantum circuit to analyze.
-        description (str): Context for when this matrix is being printed.
-    """
-    op = Operator(qc)
-    print(f"\n{description}:")
-    print("Opmatrix:\n", np.round(op.data, 4))
-
-
-def bell_state():
-    """Creates and measures a Bell state quantum circuit.
-
-    Returns:
-        dict: Measurement counts dictionary with keys '00' and '11'.
-
-    The circuit implements:
-    1. Hadamard gate on qubit 0 to create superposition
-    2. CNOT gate between qubits 0 (control) and 1 (target)
-    3. Measurement of both qubits
-    """
-    qc = QuantumCircuit(2, 2)
-    print_statevector(qc, "Initial state")
-
-    # Create superposition
-    qc.h(0)
-    if VERBOSE:
-        print_opmatrix(qc, "Matrix after H on q0")
-        print_statevector(qc, "After H on q0")
-
-    # Create entanglement
-    qc.cx(0, 1)
-    if VERBOSE:
-        print_opmatrix(qc, "Matrix after CNOT")
-        print_statevector(qc, "After CNOT")
+def simulate_circuit(circuit_file=None):
+    qc = bell_state()
 
     # Measure qubits
     qc.measure([0, 1], [0, 1])
+
+    if circuit_file:
+        circuit_drawer(qc, output="mpl", filename=circuit_file)
+        print(f"Bell: circuit rendered to {circuit_file}")
 
     # Execute simulation
     simulator = AerSimulator()
@@ -87,17 +31,19 @@ def bell_state():
     return result.get_counts(qc)
 
 
-def main(output_file):
+def main(output_file, circuit_file):
     """Executes Bell state experiment and saves results.
 
     Args:
         output_file (str): Path to save the measurement histogram.
+        output_file (str): Path to save the quantum circuit picture.
     """
-    counts = bell_state()
-    print("Measurement results:", counts)
+    counts = simulate_circuit(circuit_file)
+
+    print("Bell: measurement results:", counts)
 
     plot_histogram(counts).savefig(output_file)
-    print(f"Results saved to {output_file}")
+    print(f"Bell: results rendered to {output_file}")
 
 
 if __name__ == "__main__":
@@ -109,7 +55,16 @@ if __name__ == "__main__":
         "-o",
         type=str,
         default="bell_state.png",
-        help="Output PNG file path (default: bell_state.png)",
+        help="Output diag file path (default: bell_state.png)",
+    )
+    parser.add_argument(
+        "--circuit",
+        "-c",
+        type=str,
+        default="bell_circuit.svg",
+        help="Output circuit file path (default: bell_circuit.svg)",
     )
     args = parser.parse_args()
-    main(validate_filename(args.output))
+    outf = validate_filename(args.output, "png")
+    cf = validate_filename(args.circuit, "svg")
+    main(outf, cf)

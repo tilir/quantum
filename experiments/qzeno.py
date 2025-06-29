@@ -135,5 +135,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    output_file = validate_filename(args.output)
+    output_file = validate_filename(args.output, "png")
     main(output_file)

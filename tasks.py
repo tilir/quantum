@@ -73,7 +73,9 @@ def run_experiments(c, output_dir="results"):
 def run_bell(c, output_dir="results"):
     """Run Bell state experiment"""
     c.run(f"mkdir -p {output_dir}")
-    c.run(f"python -m experiments.bell_state -o {output_dir}/bell.png")
+    c.run(
+        f"python -m experiments.bell_state -o {output_dir}/bell.png -c {output_dir}/circuit.svg"
+    )
 
 
 @task
